@@ -2,10 +2,16 @@ package main
 
 import (
 	"parallel-data-processing/internal/infrastructure"
+	"parallel-data-processing/internal/interfaces"
+	"parallel-data-processing/internal/usecase"
 )
 
 // [Infrastructure] → [Repository] → [Use Case] → [Presenter] → [Output]
 func main() {
-	filePath := infrastructure.NewCSVReader("./assets/GTG-2_MASTER_DATA.csv")
-	filePath.ReadCSV()
+	csvReader := infrastructure.NewCSVReader("./assets/GTG-2_MASTER_DATA.csv")
+	csvInterface := interfaces.NewCSVRepository(csvReader);
+	masterUsecase := usecase.NewMasterUsecase(csvInterface)
+	masterUsecase.GroupingMaster()
+	//next to use case 
+
 }

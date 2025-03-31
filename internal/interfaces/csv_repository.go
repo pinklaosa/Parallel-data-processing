@@ -1,18 +1,17 @@
 package interfaces
 
 type CSVRepository struct {
-	filePath string
-	reader   CSVReader
+	reader CSVReader
 }
 
 type CSVReader interface {
-	ReadCSV() ([][]string, error)
+	ReadCSV() ([]string, []map[string]string, error)
 }
 
-func NewCSVRepository(filepath string, reader CSVReader) *CSVRepository {
-	return &CSVRepository{filePath: filepath, reader: reader}
+func NewCSVRepository(reader CSVReader) *CSVRepository {
+	return &CSVRepository{reader: reader}
 }
 
-func (c *CSVRepository) ReadCSV() ([][]string, error) {
+func (c *CSVRepository) ReadCSV() ([]string, []map[string]string, error) {
 	return c.reader.ReadCSV()
 }

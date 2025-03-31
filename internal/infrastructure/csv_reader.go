@@ -3,9 +3,7 @@ package infrastructure
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"io"
-	"log"
 	"os"
 	"sync"
 )
@@ -18,10 +16,10 @@ func NewCSVReader(filePath string) *CSVReader {
 	return &CSVReader{filePath: filePath}
 }
 
-func (c *CSVReader) ReadCSV() []map[string]string {
+func (c *CSVReader) ReadCSV() ([]string, []map[string]string, error) {
 	file, err := os.Open(c.filePath)
 	if err != nil {
-		log.Fatal(err)
+		return nil, nil, err
 	}
 	defer file.Close()
 
@@ -78,6 +76,5 @@ func (c *CSVReader) ReadCSV() []map[string]string {
 	wg.Wait()
 
 	final := <-data
-	fmt.Println(final)
-	return final
+	return header, final, nil
 }
