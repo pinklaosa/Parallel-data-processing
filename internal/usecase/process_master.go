@@ -1,7 +1,5 @@
 package usecase
 
-import "fmt"
-
 type MasterUsecase struct {
 	repo CSVRepository
 }
@@ -14,10 +12,10 @@ func NewMasterUsecase(repo CSVRepository) *MasterUsecase {
 	return &MasterUsecase{repo: repo}
 }
 
-func (r *MasterUsecase) GroupingMaster() {
+func (r *MasterUsecase) GroupingMaster() (map[string][]string, error) {
 	headers, records, err := r.repo.ReadCSV()
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	master := make(map[string][]string)
@@ -32,5 +30,5 @@ func (r *MasterUsecase) GroupingMaster() {
 		}
 		master[head] = hearderName
 	}
-	fmt.Println(master)
+	return master, nil
 }
