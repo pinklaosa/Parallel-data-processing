@@ -8,7 +8,7 @@ import (
 
 // [Infrastructure] → [Repository] → [Use Case] → [Presenter] → [Output]
 func main() {
-	csvReader := infrastructure.NewCSVReader("./assets/GTG-2_MASTER_DATA.csv")
+	csvReader := infrastructure.NewCSVReader("./assets/GTG-1_MASTER_DATA.csv")
 	csvInterface := interfaces.NewCSVRepository(csvReader);
 	masterUsecase := usecase.NewMasterUsecase(csvInterface)
 	masterUsecase.GroupingMaster()

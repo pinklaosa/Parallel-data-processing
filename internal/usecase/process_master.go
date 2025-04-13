@@ -1,9 +1,6 @@
 package usecase
 
-import (
-	"fmt"
-	"sync"
-)
+import "fmt"
 
 type MasterUsecase struct {
 	repo CSVRepository
@@ -23,40 +20,17 @@ func (r *MasterUsecase) GroupingMaster() {
 		fmt.Println(err)
 	}
 
-	var wg sync.WaitGroup
-	var datum map[string][]string
-	for _, g := range headers {
-	}
-
-	workers := 3
-
-	recordsChan := make(chan map[string]string, len(records))
-
-	for range workers {
-		go func() {
-			var g []string
-			for rec := range recordsChan {
-				for _, h := range headers {
-					m.Store(h, append(g, rec[h]))
-				}
+	master := make(map[string][]string)
+	for _, head := range headers {
+		seen := make(map[string]struct{})
+		var hearderName []string
+		for _,rec := range records {
+			if _,exists := seen[rec[head]]; !exists {	
+				seen[rec[head]] = struct{}{}
+				hearderName = append(hearderName, rec[head])
 			}
-		}()
-	}
-
-	go func() {
-		for _, rec := range records {
-			recordsChan <- rec
 		}
-	}()
-
-	go func() {
-		wg.Wait()
-		close(recordsChan)
-	}()
-
-	m.Range(func(key, value any) bool {
-		fmt.Println(key, value)
-		return true
-	})
-
+		master[head] = hearderName
+	}
+	fmt.Println(master)
 }
