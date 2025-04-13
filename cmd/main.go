@@ -13,10 +13,12 @@ func main() {
 	masterUsecase := usecase.NewMasterUsecase(csvInterfaceMaster)
 	groupMaster,_ := masterUsecase.GroupingMaster()
 	//raw data is the large data csv
+
+	// [raw] -> [mean hr] -> [linear regression] -> [mean sd]
 	csvReaderRaw := infrastructure.NewCSVReader("./assets/GTG-1.csv")
 	csvInterfaceRaw := interfaces.NewCSVRepository(csvReaderRaw);
 	rawData := usecase.NewRawUsecase(csvInterfaceRaw,groupMaster)
-	rawData.GroupingRaw()
+	rawData.SamplingData()
 	//next to use case 
 
 }
