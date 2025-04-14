@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"fmt"
+	"maps"
 	"strconv"
 	"sync"
 	"time"
-	"maps"
 )
 
 type RawUsecase struct {
@@ -89,6 +89,7 @@ func (r *RawUsecase) SamplingData(layoutDatetime string) {
 	for res := range result {
 		allChunkData = append(allChunkData, res)
 	}
+
 	// allchunkdata length is 4, so we need to merge them into one chunk
 	mergedChunk := make(HourlyData)
 	for _, chunk := range allChunkData {
@@ -99,7 +100,16 @@ func (r *RawUsecase) SamplingData(layoutDatetime string) {
 			maps.Copy(mergedChunk[hour], data)
 		}
 	}
+	
 
-	fmt.Println("merged len",len(mergedChunk))
+	limit := 1
+	count := 0
+	for k,v := range mergedChunk {
+		fmt.Printf("%v: %v\n", k, v)
+		count++
+		if count >= limit {
+			break
+		}
+	}
 
 }
