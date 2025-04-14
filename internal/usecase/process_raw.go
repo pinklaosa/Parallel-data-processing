@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"maps"
 )
 
 type RawUsecase struct {
@@ -28,15 +29,16 @@ func (r *RawUsecase) GroupingRaw() {
 	fmt.Println("Headers:", headers)
 }
 
+//key is the time, value is the map of string to float64
 type HourlyData map[time.Time]map[string]float64
 
-func (r *RawUsecase) SamplingData() {
+func (r *RawUsecase) SamplingData(layoutDatetime string) {
 	_, records, err := r.repo.ReadCSV()
 	if err != nil {
 		return
 	}
 	var wg sync.WaitGroup
-	numWorkers := 5
+	numWorkers := 4
 	chunkSize := (len(records) + numWorkers - 1) / numWorkers
 	chunkData := make(chan []map[string]string, numWorkers)
 	result := make(chan HourlyData, numWorkers)
@@ -49,10 +51,10 @@ func (r *RawUsecase) SamplingData() {
 				hourly := make(HourlyData)
 				for _, rec := range chunk {
 					hourStr := rec["TimeStamp"]
-					
-					hour, err := time.Parse(time.RFC3339, hourStr)
+					hour, err := time.Parse(layoutDatetime, hourStr)
 					if err != nil {
-						continue
+						fmt.Println("Error parsing time:", err)
+						break
 					}
 					datum := make(map[string]float64)
 					for key, value := range rec {
@@ -71,14 +73,9 @@ func (r *RawUsecase) SamplingData() {
 	}
 
 	go func() {
-		for range numWorkers {
-			for i := 0; i < len(records); i += chunkSize {
-				end := i + chunkSize
-				if end > len(records) {
-					end = len(records)
-				}
-				chunkData <- records[i:end]
-			}
+		for i := 0; i < len(records); i += chunkSize {
+			end := min(i+chunkSize, len(records))
+			chunkData <- records[i:end]
 		}
 		close(chunkData)
 	}()
@@ -88,10 +85,21 @@ func (r *RawUsecase) SamplingData() {
 		close(result)
 	}()
 
-	var mergedData []HourlyData
+	var allChunkData []HourlyData
 	for res := range result {
-		mergedData = append(mergedData, res)
+		allChunkData = append(allChunkData, res)
 	}
-	fmt.Println("Merged Data:",mergedData)
+	// allchunkdata length is 4, so we need to merge them into one chunk
+	mergedChunk := make(HourlyData)
+	for _, chunk := range allChunkData {
+		for hour, data := range chunk {
+			if _, exists := mergedChunk[hour]; !exists {
+				mergedChunk[hour] = make(map[string]float64)
+			}
+			maps.Copy(mergedChunk[hour], data)
+		}
+	}
+
+	fmt.Println("merged len",len(mergedChunk))
 
 }

@@ -17,8 +17,8 @@ func main() {
 	// [raw] -> [mean hr] -> [linear regression] -> [mean sd]
 	csvReaderRaw := infrastructure.NewCSVReader("./assets/GTG-1.csv")
 	csvInterfaceRaw := interfaces.NewCSVRepository(csvReaderRaw);
-	rawData := usecase.NewRawUsecase(csvInterfaceRaw,groupMaster)
-	rawData.SamplingData()
+	rawData := usecase.NewRawUsecase(csvInterfaceRaw,groupMaster);
+	rawData.SamplingData("2006-01-02 15:04:05-07:00")
 	//next to use case 
 
 }
