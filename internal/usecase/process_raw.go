@@ -116,3 +116,4 @@ func (r *RawUsecase) SamplingData(layoutDatetime string) (HourlyData, error) {
 
 	return mergedChunk, nil
 }
+
