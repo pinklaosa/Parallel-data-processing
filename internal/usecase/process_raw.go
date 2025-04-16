@@ -29,13 +29,13 @@ func (r *RawUsecase) GroupingRaw() {
 	fmt.Println("Headers:", headers)
 }
 
-//key is the time, value is the map of string to float64
+// key is the time, value is the map of string to float64
 type HourlyData map[time.Time]map[string]float64
 
-func (r *RawUsecase) SamplingData(layoutDatetime string) {
+func (r *RawUsecase) SamplingData(layoutDatetime string) (HourlyData, error) {
 	_, records, err := r.repo.ReadCSV()
 	if err != nil {
-		return
+		return nil, err
 	}
 	var wg sync.WaitGroup
 	numWorkers := 4
@@ -51,21 +51,25 @@ func (r *RawUsecase) SamplingData(layoutDatetime string) {
 				hourly := make(HourlyData)
 				for _, rec := range chunk {
 					hourStr := rec["TimeStamp"]
-					hour, err := time.Parse(layoutDatetime, hourStr)
+					timestamp, err := time.Parse(layoutDatetime, hourStr)
+					hour := timestamp.Truncate(time.Hour)
 					if err != nil {
 						fmt.Println("Error parsing time:", err)
 						break
 					}
-					datum := make(map[string]float64)
+					if _,exists := hourly[hour]; !exists {
+						hourly[hour] = make(map[string]float64)
+						hourly[hour]["count"] = 0
+					}
 					for key, value := range rec {
 						if key != "TimeStamp" {
 							val, err := strconv.ParseFloat(value, 64)
 							if err == nil {
-								datum[key] = val
+								hourly[hour][key] += val
 							}
 						}
 					}
-					hourly[hour] = datum
+					hourly[hour]["count"]++
 				}
 				result <- hourly
 			}
@@ -100,16 +104,15 @@ func (r *RawUsecase) SamplingData(layoutDatetime string) {
 			maps.Copy(mergedChunk[hour], data)
 		}
 	}
-	
 
-	limit := 1
-	count := 0
-	for k,v := range mergedChunk {
-		fmt.Printf("%v: %v\n", k, v)
-		count++
-		if count >= limit {
-			break
+	for _,data := range mergedChunk {
+		count := data["count"]
+		delete(data, "count")
+
+		for k,sum := range data {
+			data[k] = sum / count
 		}
 	}
 
+	return mergedChunk, nil
 }

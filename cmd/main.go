@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"parallel-data-processing/internal/infrastructure"
 	"parallel-data-processing/internal/interfaces"
 	"parallel-data-processing/internal/usecase"
@@ -18,7 +19,11 @@ func main() {
 	csvReaderRaw := infrastructure.NewCSVReader("./assets/GTG-1.csv")
 	csvInterfaceRaw := interfaces.NewCSVRepository(csvReaderRaw);
 	rawData := usecase.NewRawUsecase(csvInterfaceRaw,groupMaster);
-	rawData.SamplingData("2006-01-02 15:04:05-07:00")
-	//next to use case 
+
+	_,err := rawData.SamplingData("2006-01-02 15:04:05-07:00")
+	if err != nil {
+		fmt.Println(err)
+	}
+	
 
 }
